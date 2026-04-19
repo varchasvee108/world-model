@@ -6,7 +6,8 @@ seed = 1008
 dataset="edbeeching/procgen"
 batch_size = 32
 image_size = 64
-in_channels = 3
+in_channels = 18
+out_channels = 3
 num_workers = 4
 
 
@@ -16,6 +17,7 @@ hidden_dim = 256
 n_head = 4
 num_layers = 4
 dropout = 0.1
+timestep_n_embd = 128
 
 [training]
 lr = 3e-4
