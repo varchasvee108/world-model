@@ -15,8 +15,9 @@ class DataConfig(BaseModel):
     dataset: str
     batch_size: int = Field(gt=0)
     image_size: int = Field(gt=0)
-    in_channels: int
-    num_workers: int
+    in_channels: int = Field(gt=0)
+    out_channels: int = Field(gt=0)
+    num_workers: int = Field(gt=0)
 
 
 class ModelConfig(BaseModel):
@@ -26,6 +27,7 @@ class ModelConfig(BaseModel):
     n_head: int
     num_layers: int
     dropout: float
+    timestep_n_embd: int
 
 
 class TrainingConfig(BaseModel):
