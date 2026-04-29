@@ -1,7 +1,6 @@
 from datasets import load_dataset
 from torch.utils.data import Dataset
 import torchvision.transforms as T
-import torch
 from core.config import Config
 
 
@@ -26,8 +25,4 @@ class HeistDataset(Dataset):
         frame_t_plus_1 = self.tf(self.frames[i + 1])
         action = self.actions[i]
 
-        action_map = torch.zeros(15, 64, 64)
-        action_map[action] = 1.0
-
-        cond = torch.cat([frame_t, action_map], dim=0)
-        return cond, frame_t_plus_1
+        return frame_t, frame_t_plus_1, action
