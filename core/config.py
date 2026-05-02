@@ -56,11 +56,11 @@ class DiffusionConfig(BaseModel):
 
 class Config(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    project = ProjectConfig
-    data = DataConfig
-    model = ModelConfig
-    training = TrainingConfig
-    diffusion = DiffusionConfig
+    project: ProjectConfig
+    data: DataConfig
+    model: ModelConfig
+    training: TrainingConfig
+    diffusion: DiffusionConfig
 
     @classmethod
     def load_config(cls, path: str | Path) -> "Config":
