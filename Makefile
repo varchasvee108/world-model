@@ -1,4 +1,3 @@
-# Makefile for World Model project
 
 .PHONY: train infer
 
