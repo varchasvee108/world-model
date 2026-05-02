@@ -32,7 +32,6 @@ class Trainer:
             device=self.device.type, enabled=(device.type == "cuda")
         )
         self.step = 0
-        self.epoch = 0
 
         self.ckpt_dir = Path("checkpoints")
         self.ckpt_dir.mkdir(exist_ok=True)
@@ -41,18 +40,17 @@ class Trainer:
         max_steps = self.config.training.max_steps
         grad_accum = self.config.training.grad_accum_steps
 
-        data_iter = iter(self.train_loader)
-        pbar = tqdm(total=max_steps, desc="Training")
+        pbar = tqdm(range(max_steps), desc="Training")
 
+        data_iter = iter(self.train_loader)
         self.optimizer.zero_grad(set_to_none=True)
 
-        while self.step < max_steps:
+        for step in pbar:
             try:
                 batch = next(data_iter)
             except StopIteration:
                 data_iter = iter(self.train_loader)
                 batch = next(data_iter)
-                self.epoch += 1
 
             loss = self._train_step(batch)
             raw_loss = loss.item()
@@ -60,7 +58,7 @@ class Trainer:
             loss = loss / grad_accum
             self.scaler.scale(loss).backward()
 
-            if (self.step + 1) % grad_accum == 0:
+            if (step + 1) % grad_accum == 0:
                 self.scaler.unscale_(self.optimizer)
                 torch.nn.utils.clip_grad_norm_(
                     self.model.parameters(),
@@ -71,8 +69,7 @@ class Trainer:
                 self.optimizer.zero_grad(set_to_none=True)
                 self.scheduler.step()
 
-            self.step += 1
-            pbar.update(1)
+            self.step = step + 1
             pbar.set_postfix(loss=raw_loss)
 
             if self.step % self.config.training.log_interval == 0:
@@ -126,7 +123,6 @@ class Trainer:
     def save_checkpoint(self, val_loss):
         state = {
             "step": self.step,
-            "epoch": self.epoch,
             "model_state_dict": self.model.state_dict(),
             "optimizer_state_dict": self.optimizer.state_dict(),
             "scheduler_state_dict": self.scheduler.state_dict(),
