@@ -8,8 +8,12 @@ class NextFrameModel(nn.Module):
     def __init__(self, config: Config):
         super().__init__()
         self.config = config
-        self.num_actions = 15
-        in_ch = config.data.out_channels
+
+        self.num_actions = 6
+
+        in_ch = config.data.in_channels
+        out_ch = config.data.out_channels
+
         self.action_emb = nn.Embedding(self.num_actions, config.model.n_embd)
 
         self.conv_in = nn.Sequential(
@@ -22,10 +26,12 @@ class NextFrameModel(nn.Module):
             ResBlock(64, 128, config.model.n_embd, dropout=config.model.dropout),
             Downsample(128),
         )
+
         self.down2 = nn.Sequential(
             ResBlock(128, 256, config.model.n_embd, dropout=config.model.dropout),
             Downsample(256),
         )
+
         self.bottleneck = ResBlock(
             256, 256, config.model.n_embd, dropout=config.model.dropout
         )
@@ -34,6 +40,7 @@ class NextFrameModel(nn.Module):
             Upsample(256),
             ResBlock(512, 128, config.model.n_embd, dropout=config.model.dropout),
         )
+
         self.up2 = nn.Sequential(
             Upsample(128),
             ResBlock(256, 64, config.model.n_embd, dropout=config.model.dropout),
@@ -42,8 +49,7 @@ class NextFrameModel(nn.Module):
         self.conv_out = nn.Sequential(
             nn.GroupNorm(8, 64),
             nn.SiLU(),
-            nn.Conv2d(64, in_ch, 3, padding=1),
-            nn.Tanh(),
+            nn.Conv2d(64, out_ch, 3, padding=1),
         )
 
     def forward(self, frame: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
