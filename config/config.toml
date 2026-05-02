@@ -5,9 +5,9 @@ seed = 1008
 [data]
 dataset="edbeeching/procgen"
 batch_size = 32
-image_size = 64
-in_channels = 18
-out_channels = 3
+image_size = 84
+in_channels = 4
+out_channels = 1
 num_workers = 4
 
 
