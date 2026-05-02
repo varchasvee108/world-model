@@ -28,7 +28,9 @@ class Trainer:
         self.train_loader = train_dataloader
         self.val_loader = val_dataloader
         self.device = device
-        self.scaler = GradScaler(enabled=(device.type == "cuda"))
+        self.scaler = GradScaler(
+            device=self.device.type, enabled=(device.type == "cuda")
+        )
         self.step = 0
         self.epoch = 0
 
@@ -79,10 +81,9 @@ class Trainer:
             if self.step % self.config.training.eval_interval == 0:
                 val_loss = self.evaluate()
                 tqdm.write(f"Step {self.step}: val_loss={val_loss:.4f}")
-                self.save_checkpoint()
+                self.save_checkpoint(val_loss=val_loss)
 
         pbar.close()
-        self.save_checkpoint(final=True)
 
     def _train_step(self, batch):
         frame_t, frame_tp1, action = batch
@@ -122,23 +123,19 @@ class Trainer:
         self.model.train()
         return total_loss / max(1, total_batches)
 
-    def save_checkpoint(self, final=False):
-        name = "final.pt" if final else f"step_{self.step}.pt"
-        path = self.ckpt_dir / name
+    def save_checkpoint(self, val_loss):
+        state = {
+            "step": self.step,
+            "epoch": self.epoch,
+            "model_state_dict": self.model.state_dict(),
+            "optimizer_state_dict": self.optimizer.state_dict(),
+            "scheduler_state_dict": self.scheduler.state_dict(),
+            "scaler_state_dict": self.scaler.state_dict(),
+            "val_loss": val_loss,
+        }
 
-        torch.save(
-            {
-                "step": self.step,
-                "epoch": self.epoch,
-                "model_state_dict": self.model.state_dict(),
-                "optimizer_state_dict": self.optimizer.state_dict(),
-                "scheduler_state_dict": self.scheduler.state_dict(),
-                "scaler_state_dict": self.scaler.state_dict(),
-            },
-            path,
-        )
+        torch.save(state, self.ckpt_dir / "last.pt")
 
-        if not final:
-            for old in self.ckpt_dir.glob("step_*.pt"):
-                if old != path:
-                    old.unlink()
+        if not hasattr(self, "best_loss") or val_loss < self.best_loss:
+            self.best_loss = val_loss
+            torch.save(state, self.ckpt_dir / "best.pt")
