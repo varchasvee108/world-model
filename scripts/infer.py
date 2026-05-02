@@ -18,7 +18,7 @@ def main():
         device=comp.device,
     )
 
-    ckpt = torch.load("checkpoints/final.pt", map_location=comp.device)
+    ckpt = torch.load("checkpoints/last.pt", map_location=comp.device)
     trainer.model.load_state_dict(ckpt["model_state_dict"])
     trainer.model.eval()
 
