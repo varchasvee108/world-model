@@ -34,7 +34,7 @@ class TrainingConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
     lr: float = Field(gt=0)
     max_steps: int = Field(gt=0)
-    betas: tuple[float, float] = Field(ge=0, le=1)
+    betas: tuple[float, float]
     weight_decay: float = Field(ge=0)
     grad_clip: float = Field(gt=0)
     warmup_iters: int = Field(ge=0)
